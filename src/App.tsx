@@ -44,7 +44,22 @@ export default function App() {
       const saved = localStorage.getItem('webtoapk_saved_config');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...DEFAULT_APP_CONFIG, ...parsed };
+        return {
+          ...DEFAULT_APP_CONFIG,
+          ...parsed,
+          thirdPartyCookies: parsed.thirdPartyCookies !== false,
+          javascriptEnabled: parsed.javascriptEnabled !== false,
+          popupAndRedirects: parsed.popupAndRedirects !== false,
+          soundAutoplay: parsed.soundAutoplay !== false,
+          intrusiveAds: parsed.intrusiveAds !== false,
+          protectedContent: parsed.protectedContent !== false,
+          autoVerify: parsed.autoVerify !== false,
+          onDeviceSiteData: parsed.onDeviceSiteData !== false,
+          automaticDownload: parsed.automaticDownload !== false,
+          jsOptimizationAndSecurity: parsed.jsOptimizationAndSecurity !== false,
+          dataStore: parsed.dataStore !== false,
+          embeddedContent: parsed.embeddedContent !== false,
+        };
       }
     } catch (e) {
       console.warn('Failed to load saved config:', e);

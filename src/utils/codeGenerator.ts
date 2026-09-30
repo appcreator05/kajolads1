@@ -318,15 +318,65 @@ ${
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         val settings: WebSettings = webView.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.databaseEnabled = true
-        settings.allowFileAccess = true
-        settings.allowContentAccess = true
+
+        // 1. JavaScript Engine & Optimisation
+        settings.javaScriptEnabled = ${config.javascriptEnabled !== false}
+        settings.javaScriptCanOpenWindowsAutomatically = ${config.popupAndRedirects !== false}
+        ${config.jsOptimizationAndSecurity !== false ? `
         try {
-            settings.allowUniversalAccessFromFileURLs = true
-            settings.allowFileAccessFromFileURLs = true
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
         } catch (_: Exception) {}
+        ` : ''}
+
+        // 2. On-Device Site Data & Data Store
+        settings.domStorageEnabled = ${config.onDeviceSiteData !== false}
+        settings.databaseEnabled = ${config.dataStore !== false}
+        settings.allowFileAccess = ${config.onDeviceSiteData !== false}
+        settings.allowContentAccess = ${config.onDeviceSiteData !== false}
+        try {
+            settings.allowUniversalAccessFromFileURLs = ${config.onDeviceSiteData !== false}
+            settings.allowFileAccessFromFileURLs = ${config.onDeviceSiteData !== false}
+        } catch (_: Exception) {}
+        ${config.dataStore !== false ? `
+        try {
+            CookieManager.getInstance().flush()
+        } catch (_: Exception) {}
+        ` : ''}
+
+        // 3. Sound & Audio Autoplay
+        settings.mediaPlaybackRequiresUserGesture = ${config.soundAutoplay === false}
+
+        // 4. Pop-up & Redirect Support
+        settings.setSupportMultipleWindows(${config.popupAndRedirects !== false})
+
+        // 5. Intrusive Ads, Mixed Content & Safe Browsing
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        ${config.intrusiveAds !== false ? `
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                settings.safeBrowsingEnabled = false
+            } catch (_: Exception) {}
+        }
+        ` : ''}
+
+        // 6. Third-Party Cookies & Cross-Domain Sessions
+        ${config.thirdPartyCookies !== false ? `
+        try {
+            CookieManager.getInstance().setAcceptCookie(true)
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+        } catch (_: Exception) {}
+        ` : ''}
+
+        // 7. Auto-Verify / Cloudflare / reCAPTCHA Bot Bypass User-Agent
+        ${config.autoVerify !== false ? `
+        try {
+            val defaultUa = settings.userAgentString
+            val cleanUa = defaultUa.replace("; wv", "").replace("Version/4.0 ", "")
+            settings.userAgentString = cleanUa
+        } catch (_: Exception) {}
+        ` : ''}
+
         settings.loadsImagesAutomatically = true
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
@@ -335,13 +385,6 @@ ${
         settings.displayZoomControls = false
         settings.saveFormData = ${Boolean(config.saveFormData)}
         ${(config.enableGpsPrompt || config.permissions?.accessFineLocation || config.permissions?.accessCoarseLocation) ? 'settings.setGeolocationEnabled(true)' : ''}
-
-        // Target Blank, Popup Redirects, Subscriptions & Ad Window Support
-        settings.setSupportMultipleWindows(true)
-        settings.javaScriptCanOpenWindowsAutomatically = true
-        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
         // Cache Mode Configuration (${config.cacheMode || 'default_cache'})
         settings.cacheMode = ${
@@ -419,7 +462,40 @@ ${
                 return true
             }
 
-            // WebRTC / Camera & Microphone capture permission from HTML5
+            ${config.embeddedContent !== false ? `
+            private var customVideoView: View? = null
+            private var customVideoViewCallback: WebChromeClient.CustomViewCallback? = null
+
+            override fun onShowCustomView(view: View?, callback: WebChromeClient.CustomViewCallback?) {
+                if (customVideoView != null) {
+                    onHideCustomView()
+                    return
+                }
+                customVideoView = view
+                customVideoViewCallback = callback
+                val rootLayout = findViewById<FrameLayout>(R.id.rootLayout) ?: return
+                rootLayout.addView(
+                    view,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
+                webView.visibility = View.GONE
+            }
+
+            override fun onHideCustomView() {
+                val rootLayout = findViewById<FrameLayout>(R.id.rootLayout) ?: return
+                if (customVideoView == null) return
+                rootLayout.removeView(customVideoView)
+                customVideoView = null
+                customVideoViewCallback?.onCustomViewHidden()
+                customVideoViewCallback = null
+                webView.visibility = View.VISIBLE
+            }
+            ` : ''}
+
+            // WebRTC / Camera & Microphone capture + Protected Content (DRM Widevine) permission
             override fun onPermissionRequest(request: android.webkit.PermissionRequest?) {
                 runOnUiThread {
                     val requestedResources = request?.resources ?: return@runOnUiThread
@@ -427,7 +503,9 @@ ${
                     for (r in requestedResources) {
                         if (r == android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE && ${Boolean(config.permissions?.camera)}) {
                             granted.add(r)
-                        } else if (r == android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE && ${Boolean(config.permissions?.recordAudio)}) {
+                        } else if (r == android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE && (${Boolean(config.permissions?.recordAudio)} || ${config.soundAutoplay !== false})) {
+                            granted.add(r)
+                        } else if (r == android.webkit.PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID && ${config.protectedContent !== false}) {
                             granted.add(r)
                         } else {
                             granted.add(r)

@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Radio,
   Sun,
+  Zap,
 } from 'lucide-react';
 import { AppConfig } from '../types';
 import { useWallet } from '../context/WalletContext';
@@ -149,6 +150,29 @@ export const PreBuildCheckModal: React.FC<PreBuildCheckModalProps> = ({
                 </span>
                 <span className="text-emerald-300 font-semibold">
                   {config.keepScreenOn !== false ? 'Always On (No Sleep)' : 'System Default'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2 text-[11px]">
+                <span className="text-slate-400 flex items-center gap-1.5 shrink-0">
+                  <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                  Browser &amp; WebView:
+                </span>
+                <span className="text-emerald-300 font-semibold">
+                  {[
+                    config.thirdPartyCookies !== false,
+                    config.javascriptEnabled !== false,
+                    config.popupAndRedirects !== false,
+                    config.soundAutoplay !== false,
+                    config.intrusiveAds !== false,
+                    config.protectedContent !== false,
+                    config.autoVerify !== false,
+                    config.onDeviceSiteData !== false,
+                    config.automaticDownload !== false,
+                    config.jsOptimizationAndSecurity !== false,
+                    config.dataStore !== false,
+                    config.embeddedContent !== false,
+                  ].filter(Boolean).length} / 12 Features Allowed
                 </span>
               </div>
 

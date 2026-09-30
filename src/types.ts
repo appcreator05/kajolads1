@@ -82,6 +82,20 @@ export interface AppConfig {
   enablePaymentRedirects: boolean; // Handle payment gateways, popups, and wallet app return redirects
   keepScreenOn: boolean; // Keeps screen always awake, prevents display turn off / sleep
 
+  // Advanced Browser & WebView Allowed Features (All user-requested capabilities)
+  thirdPartyCookies: boolean; // Allow third-party cookies across domains & logins
+  javascriptEnabled: boolean; // Full JavaScript engine & dynamic DOM
+  popupAndRedirects: boolean; // Pop-ups, target=_blank, and multi-window redirects
+  soundAutoplay: boolean; // Sound & audio playback without user interaction gesture
+  intrusiveAds: boolean; // Allow interstitial, banner, overlay, and popunder ads
+  protectedContent: boolean; // Protected content DRM (Widevine / EME media streaming)
+  autoVerify: boolean; // Auto-verify Digital Asset Links, SSL certificates, & credentials
+  onDeviceSiteData: boolean; // On-device site data (LocalStorage, SessionStorage, IndexedDB)
+  automaticDownload: boolean; // Seamless automatic downloads
+  jsOptimizationAndSecurity: boolean; // JavaScript optimization, JIT, mixed content allow
+  dataStore: boolean; // Persistent database data store & offline cache
+  embeddedContent: boolean; // Embedded iframes, YouTube, Vimeo, Canvas 3D & WebGL
+
   // Cache Mode
   cacheMode: CacheMode;
   cacheEnabled: boolean; // backward compatibility
@@ -129,6 +143,19 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   useCustomTabs: true,
   enablePaymentRedirects: true,
   keepScreenOn: true,
+
+  thirdPartyCookies: true,
+  javascriptEnabled: true,
+  popupAndRedirects: true,
+  soundAutoplay: true,
+  intrusiveAds: true,
+  protectedContent: true,
+  autoVerify: true,
+  onDeviceSiteData: true,
+  automaticDownload: true,
+  jsOptimizationAndSecurity: true,
+  dataStore: true,
+  embeddedContent: true,
 
   cacheMode: 'default_cache',
   cacheEnabled: true,

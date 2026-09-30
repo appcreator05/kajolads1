@@ -48,9 +48,28 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var loadingSpinner: ProgressBar
+    private lateinit var rootLayout: FrameLayout
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private var targetBaseHost: String = ""
     private var targetBaseUrl: String = ""
+
+    // 12 Advanced Allowed Features (Configurable via app_config.json, default: ALL TRUE / ALLOWED)
+    private var allowThirdPartyCookies = true
+    private var allowJavascript = true
+    private var allowPopupAndRedirects = true
+    private var allowSoundAutoplay = true
+    private var allowIntrusiveAds = true
+    private var allowProtectedContent = true
+    private var allowAutoVerify = true
+    private var allowOnDeviceSiteData = true
+    private var allowAutomaticDownload = true
+    private var allowJsOptimizationAndSecurity = true
+    private var allowDataStore = true
+    private var allowEmbeddedContent = true
+
+    // Fullscreen embedded video custom view support
+    private var customVideoView: View? = null
+    private var customVideoViewCallback: WebChromeClient.CustomViewCallback? = null
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -121,6 +140,18 @@ class MainActivity : AppCompatActivity() {
             if (json.has("splashDuration")) {
                 splashDurationMs = (json.optDouble("splashDuration", 2.5) * 1000).toLong()
             }
+            if (json.has("thirdPartyCookies")) allowThirdPartyCookies = json.optBoolean("thirdPartyCookies", true)
+            if (json.has("javascriptEnabled")) allowJavascript = json.optBoolean("javascriptEnabled", true)
+            if (json.has("popupAndRedirects")) allowPopupAndRedirects = json.optBoolean("popupAndRedirects", true)
+            if (json.has("soundAutoplay")) allowSoundAutoplay = json.optBoolean("soundAutoplay", true)
+            if (json.has("intrusiveAds")) allowIntrusiveAds = json.optBoolean("intrusiveAds", true)
+            if (json.has("protectedContent")) allowProtectedContent = json.optBoolean("protectedContent", true)
+            if (json.has("autoVerify")) allowAutoVerify = json.optBoolean("autoVerify", true)
+            if (json.has("onDeviceSiteData")) allowOnDeviceSiteData = json.optBoolean("onDeviceSiteData", true)
+            if (json.has("automaticDownload")) allowAutomaticDownload = json.optBoolean("automaticDownload", true)
+            if (json.has("jsOptimizationAndSecurity")) allowJsOptimizationAndSecurity = json.optBoolean("jsOptimizationAndSecurity", true)
+            if (json.has("dataStore")) allowDataStore = json.optBoolean("dataStore", true)
+            if (json.has("embeddedContent")) allowEmbeddedContent = json.optBoolean("embeddedContent", true)
         } catch (_: Exception) {}
 
         // Fullscreen configuration:
@@ -141,7 +172,7 @@ class MainActivity : AppCompatActivity() {
             } catch (_: Exception) {}
         }
 
-        val rootLayout = FrameLayout(this).apply {
+        rootLayout = FrameLayout(this).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -409,21 +440,70 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebViewSettings() {
         val settings = webView.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.databaseEnabled = true
-        settings.allowFileAccess = true
-        settings.allowContentAccess = true
+
+        // 1. JavaScript Engine & Optimization
+        settings.javaScriptEnabled = allowJavascript
+        settings.javaScriptCanOpenWindowsAutomatically = allowPopupAndRedirects
+        if (allowJsOptimizationAndSecurity) {
+            try {
+                webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+            } catch (_: Exception) {}
+        }
+
+        // 2. Third-Party Cookies & Cross-Domain Sessions
+        if (allowThirdPartyCookies) {
+            try {
+                CookieManager.getInstance().setAcceptCookie(true)
+                CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+            } catch (_: Exception) {}
+        }
+
+        // 3. Pop-up and Redirect Support
+        settings.setSupportMultipleWindows(allowPopupAndRedirects)
+
+        // 4. Sound & Audio Autoplay
+        settings.mediaPlaybackRequiresUserGesture = !allowSoundAutoplay
+
+        // 5. Intrusive Ads, Mixed Content & Safe Browsing
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allowIntrusiveAds) {
+            try {
+                settings.safeBrowsingEnabled = false
+            } catch (_: Exception) {}
+        }
+
+        // 6. Auto-Verify / Cloudflare / reCAPTCHA Bot Bypass User-Agent
+        if (allowAutoVerify) {
+            try {
+                val defaultUa = settings.userAgentString
+                val cleanUa = defaultUa.replace("; wv", "").replace("Version/4.0 ", "")
+                settings.userAgentString = cleanUa
+            } catch (_: Exception) {}
+        }
+
+        // 7. On-Device Site Data & Data Store
+        settings.domStorageEnabled = allowOnDeviceSiteData
+        settings.databaseEnabled = allowDataStore
+        settings.allowFileAccess = allowOnDeviceSiteData
+        settings.allowContentAccess = allowOnDeviceSiteData
+        try {
+            settings.allowFileAccessFromFileURLs = allowOnDeviceSiteData
+            settings.allowUniversalAccessFromFileURLs = allowOnDeviceSiteData
+        } catch (_: Exception) {}
+        if (allowDataStore) {
+            try {
+                CookieManager.getInstance().flush()
+            } catch (_: Exception) {}
+        }
+
         settings.useWideViewPort = false
         settings.loadWithOverviewMode = true
         settings.textZoom = 100
         settings.setSupportZoom(false)
         settings.builtInZoomControls = false
         settings.displayZoomControls = false
-        settings.mediaPlaybackRequiresUserGesture = false
         settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.setSupportMultipleWindows(true)
-        settings.javaScriptCanOpenWindowsAutomatically = true
 
         // Register Native Android Bridge for Direct Downloads and Custom Tabs
         val bridge = AndroidBridge()
@@ -441,12 +521,67 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // Embedded Video / Custom View Fullscreen (YouTube, Vimeo, HTML5 Video)
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                if (!allowEmbeddedContent || view == null) {
+                    super.onShowCustomView(view, callback)
+                    return
+                }
+                if (customVideoView != null) {
+                    onHideCustomView()
+                    return
+                }
+                customVideoView = view
+                customVideoViewCallback = callback
+                rootLayout.addView(
+                    view,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
+                webView.visibility = View.GONE
+            }
+
+            override fun onHideCustomView() {
+                if (customVideoView == null) return
+                rootLayout.removeView(customVideoView)
+                customVideoView = null
+                customVideoViewCallback?.onCustomViewHidden()
+                customVideoViewCallback = null
+                webView.visibility = View.VISIBLE
+            }
+
+            // Protected Content (DRM Widevine / EME) & Audio/Video capture
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                runOnUiThread {
+                    val requestedResources = request?.resources ?: return@runOnUiThread
+                    val granted = ArrayList<String>()
+                    for (r in requestedResources) {
+                        if (r == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID && allowProtectedContent) {
+                            granted.add(r)
+                        } else if (r == PermissionRequest.RESOURCE_AUDIO_CAPTURE && allowSoundAutoplay) {
+                            granted.add(r)
+                        } else {
+                            granted.add(r)
+                        }
+                    }
+                    if (granted.isNotEmpty()) {
+                        request.grant(granted.toTypedArray())
+                    } else {
+                        request.deny()
+                    }
+                }
+            }
+
             override fun onCreateWindow(
                 view: WebView?,
                 isDialog: Boolean,
                 isUserGesture: Boolean,
                 resultMsg: Message?
             ): Boolean {
+                if (!allowPopupAndRedirects) return false
+
                 val hrefMsg = view?.handler?.obtainMessage()
                 view?.requestFocusNodeHref(hrefMsg)
                 val directUrl = hrefMsg?.data?.getString("url")
@@ -458,6 +593,12 @@ class MainActivity : AppCompatActivity() {
                 val newWebView = WebView(this@MainActivity).apply {
                     this.settings.javaScriptEnabled = true
                     this.settings.domStorageEnabled = true
+                    this.settings.databaseEnabled = true
+                    this.settings.setSupportMultipleWindows(true)
+                    this.settings.javaScriptCanOpenWindowsAutomatically = true
+                    try {
+                        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+                    } catch (_: Exception) {}
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(v: WebView?, req: WebResourceRequest?): Boolean {
                             val target = req?.url?.toString() ?: return false
@@ -736,6 +877,14 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        if (customVideoView != null) {
+            rootLayout.removeView(customVideoView)
+            customVideoView = null
+            customVideoViewCallback?.onCustomViewHidden()
+            customVideoViewCallback = null
+            webView.visibility = View.VISIBLE
+            return
+        }
         if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {

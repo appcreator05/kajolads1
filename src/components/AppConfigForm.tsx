@@ -36,6 +36,12 @@ import {
   CreditCard,
   Wallet,
   Sun,
+  Cookie,
+  Code2,
+  Cpu,
+  HardDrive,
+  DownloadCloud,
+  Check,
 } from 'lucide-react';
 import {
   AppConfig,
@@ -306,6 +312,162 @@ export const AppConfigForm: React.FC<AppConfigFormProps> = ({
       icon: Sun,
     },
   ];
+
+  // User-requested 12 Advanced Browser & WebView Allowed Features
+  const advancedBrowserFeatures = [
+    {
+      id: 'thirdPartyCookies' as const,
+      title: 'Third Party Cookies',
+      bengali: 'থার্ড-পার্টি কুকিজ এলাউড',
+      desc: 'Allow cross-domain cookies, social login sessions (Google, Facebook), tracking, and embedded widget cookies.',
+      tag: 'Cookies & Auth',
+      icon: Cookie,
+      checked: config.thirdPartyCookies !== false,
+      toggle: () => onChange({ thirdPartyCookies: config.thirdPartyCookies === false }),
+    },
+    {
+      id: 'javascriptEnabled' as const,
+      title: 'JavaScript Engine',
+      bengali: 'জাভাস্ক্রিপ্ট স্ক্রিপ্ট এক্সেকিউশন',
+      desc: 'Full high-performance JavaScript execution, ES6+ modules, dynamic DOM manipulation, and interactive web elements.',
+      tag: 'V8 Engine',
+      icon: Code2,
+      checked: config.javascriptEnabled !== false,
+      toggle: () => onChange({ javascriptEnabled: config.javascriptEnabled === false }),
+    },
+    {
+      id: 'popupAndRedirects' as const,
+      title: 'Pop-up & Redirects',
+      bengali: 'পপ-আপ ও রিডাইরেক্ট সাপোর্ট',
+      desc: 'Enable window.open(), multi-window popups, payment gateways, authentication dialogs, and automated page redirects.',
+      tag: 'Multi-Window',
+      icon: ExternalLink,
+      checked: config.popupAndRedirects !== false,
+      toggle: () => onChange({ popupAndRedirects: config.popupAndRedirects === false }),
+    },
+    {
+      id: 'soundAutoplay' as const,
+      title: 'Sound & Audio Playback',
+      bengali: 'সাউন্ড ও অডিও অটো-প্লে',
+      desc: 'Enable unmuted media audio, background sounds, notifications, and HTML5 audio elements without requiring prior user touch.',
+      tag: 'Audio Autoplay',
+      icon: Volume2,
+      checked: config.soundAutoplay !== false,
+      toggle: () => onChange({ soundAutoplay: config.soundAutoplay === false }),
+    },
+    {
+      id: 'intrusiveAds' as const,
+      title: 'Intrusive Ads & Popunders',
+      bengali: 'ইন্ট্রুসিভ অ্যাড ও পপ-আন্ডার ব্যানার',
+      desc: 'Allow all ad networks (AdSense, AdMob, PropellerAds, PopAds, interstitial/overlay ads, redirect ads) without blocking.',
+      tag: 'Ads Allowed',
+      icon: Sparkles,
+      checked: config.intrusiveAds !== false,
+      toggle: () => onChange({ intrusiveAds: config.intrusiveAds === false }),
+    },
+    {
+      id: 'protectedContent' as const,
+      title: 'Protected Content (DRM Widevine)',
+      bengali: 'প্রোটেক্টেড কন্টেন্ট ও ডিআরএম',
+      desc: 'Grant protected media ID permission for DRM streams, Widevine EME, OTT platforms, Spotify, and encrypted media.',
+      tag: 'DRM / Widevine',
+      icon: ShieldCheck,
+      checked: config.protectedContent !== false,
+      toggle: () => onChange({ protectedContent: config.protectedContent === false }),
+    },
+    {
+      id: 'autoVerify' as const,
+      title: 'Auto Verify & Anti-Bot Bypass',
+      bengali: 'অটো ভেরিফাই ও ক্যাপচা বাইপাস',
+      desc: 'Optimized browser fingerprint to seamlessly pass Cloudflare Turnstile, Google reCAPTCHA, and SSL verification.',
+      tag: 'Turnstile / Captcha',
+      icon: Zap,
+      checked: config.autoVerify !== false,
+      toggle: () => onChange({ autoVerify: config.autoVerify === false }),
+    },
+    {
+      id: 'onDeviceSiteData' as const,
+      title: 'On-Device Site Data',
+      bengali: 'অন-ডিভাইস সাইট ডাটা',
+      desc: 'Full on-device storage for localStorage, sessionStorage, IndexedDB, and persistent app database files.',
+      tag: 'Local Storage',
+      icon: Database,
+      checked: config.onDeviceSiteData !== false,
+      toggle: () => onChange({ onDeviceSiteData: config.onDeviceSiteData === false }),
+    },
+    {
+      id: 'automaticDownload' as const,
+      title: 'Automatic Download',
+      bengali: 'অটোমেটিক ডাউনলোড ও ডিরেক্ট সেভ',
+      desc: 'Seamless automatic downloads for APKs, PDFs, and media files directly into device Downloads with system notifications.',
+      tag: 'Direct Download',
+      icon: DownloadCloud,
+      checked: config.automaticDownload !== false,
+      toggle: () => onChange({ automaticDownload: config.automaticDownload === false }),
+    },
+    {
+      id: 'jsOptimizationAndSecurity' as const,
+      title: 'JavaScript Optimisation & Security',
+      bengali: 'জাভাস্ক্রিপ্ট অপ্টিমাইজেশন ও সিকিউরিটি',
+      desc: 'Hardware-accelerated GPU rendering, V8 turbo compilation, normal layout algorithm, and flexible mixed-content security.',
+      tag: 'GPU Turbo & JIT',
+      icon: Cpu,
+      checked: config.jsOptimizationAndSecurity !== false,
+      toggle: () => onChange({ jsOptimizationAndSecurity: config.jsOptimizationAndSecurity === false }),
+    },
+    {
+      id: 'dataStore' as const,
+      title: 'Data Store & Local Database',
+      bengali: 'ডাটা স্টোর ও লোকাল ডাটাবেস',
+      desc: 'Persistent offline data store, SQLite web SQL, ServiceWorker caching, and immediate cookie cache flushing.',
+      tag: 'Offline Store',
+      icon: HardDrive,
+      checked: config.dataStore !== false,
+      toggle: () => onChange({ dataStore: config.dataStore === false }),
+    },
+    {
+      id: 'embeddedContent' as const,
+      title: 'Embedded Content & Iframes',
+      bengali: 'এমবেডেড কন্টেন্ট ও আইফ্রেম',
+      desc: 'Full support for embedded iframes, YouTube, Vimeo, HTML5 video with native fullscreen landscape expansion.',
+      tag: 'Iframes & Video',
+      icon: Layers,
+      checked: config.embeddedContent !== false,
+      toggle: () => onChange({ embeddedContent: config.embeddedContent === false }),
+    },
+  ];
+
+  const handleAllowAllAdvancedFeatures = () => {
+    onChange({
+      thirdPartyCookies: true,
+      javascriptEnabled: true,
+      popupAndRedirects: true,
+      soundAutoplay: true,
+      intrusiveAds: true,
+      protectedContent: true,
+      autoVerify: true,
+      onDeviceSiteData: true,
+      automaticDownload: true,
+      jsOptimizationAndSecurity: true,
+      dataStore: true,
+      embeddedContent: true,
+    });
+  };
+
+  const allowedFeaturesCount = [
+    config.thirdPartyCookies !== false,
+    config.javascriptEnabled !== false,
+    config.popupAndRedirects !== false,
+    config.soundAutoplay !== false,
+    config.intrusiveAds !== false,
+    config.protectedContent !== false,
+    config.autoVerify !== false,
+    config.onDeviceSiteData !== false,
+    config.automaticDownload !== false,
+    config.jsOptimizationAndSecurity !== false,
+    config.dataStore !== false,
+    config.embeddedContent !== false,
+  ].filter(Boolean).length;
 
   // Permissions list requested by user
   const permissionsList: {
@@ -853,11 +1015,124 @@ export const AppConfigForm: React.FC<AppConfigFormProps> = ({
         </div>
       </div>
 
-      {/* 5. Cache Mode Options */}
+      {/* 5. Advanced Browser & WebView Permissions (User Requested 12 Allowed Features) */}
+      <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-teal-950/40 border border-emerald-500/30 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-emerald-500/20">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm border border-emerald-500/30">
+              5
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base font-semibold text-white">
+                  Advanced Browser &amp; WebView Permissions
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {allowedFeaturesCount} / 12 Allowed (সব সক্রিয়)
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                ওয়েবভিউ ও ব্রাউজার সেটিংস: তৃতীয় পক্ষের কুকিজ, জাভাস্ক্রিপ্ট, রিডাইরেক্ট, সাউন্ড, অ্যাডস, ডাউনলোড ও এমবেড কন্টেন্ট
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={handleAllowAllAdvancedFeatures}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+            >
+              <Check className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Allow All 12 (সব সক্রিয়)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 12 Features Responsive Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {advancedBrowserFeatures.map((item) => {
+            const IconComp = item.icon;
+            return (
+              <div
+                key={item.id}
+                onClick={item.toggle}
+                className={`p-3.5 rounded-xl border cursor-pointer transition select-none flex flex-col justify-between ${
+                  item.checked
+                    ? 'bg-emerald-950/30 border-emerald-500/40 ring-1 ring-emerald-500/20 hover:border-emerald-400'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 opacity-60'
+                }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                          item.checked
+                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                        }`}
+                      >
+                        <IconComp className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <span
+                          className={`text-xs font-bold block truncate ${
+                            item.checked ? 'text-white' : 'text-slate-400'
+                          }`}
+                        >
+                          {item.title}
+                        </span>
+                        <span className="text-[10px] text-emerald-400/80 block font-medium">
+                          {item.bengali}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 border ${
+                        item.checked
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          : 'bg-slate-800 text-slate-500 border-slate-700'
+                      }`}
+                    >
+                      {item.checked ? 'Allowed' : 'Blocked'}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                    {item.desc}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[10px]">
+                  <span className="text-slate-500 font-mono">#{item.tag}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition ${
+                        item.checked
+                          ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold'
+                          : 'border-slate-700 bg-slate-800/80 text-transparent'
+                      }`}
+                    >
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                    <span className={item.checked ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
+                      {item.checked ? 'Active & Allowed' : 'Disabled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 6. Cache Mode Options */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold">
-            5
+            6
           </div>
           <div>
             <h2 className="text-base font-semibold text-white">Cache Mode Options</h2>
@@ -936,12 +1211,12 @@ export const AppConfigForm: React.FC<AppConfigFormProps> = ({
         </div>
       </div>
 
-      {/* 6. Ads Section (AdMob vs Start.io) */}
+      {/* 7. Ads Section (AdMob vs Start.io) */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
-              6
+              7
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">
@@ -1299,12 +1574,12 @@ export const AppConfigForm: React.FC<AppConfigFormProps> = ({
         )}
       </div>
 
-      {/* 7. Customizable Android Permissions */}
+      {/* 8. Customizable Android Permissions */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
-              7
+              8
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">
